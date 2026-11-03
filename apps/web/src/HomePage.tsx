@@ -85,15 +85,17 @@ function PieceRow({ piece }: { piece: Piece }) {
     <li className="piece">
       <div className="piece-line">
         <span className="piece-title">{piece.title}</span>
-        <span className="arrow" aria-hidden="true">
-          →
+        <span className="piece-meta">
+          <span className="arrow" aria-hidden="true">
+            →
+          </span>
+          <span className="topic">{piece.topic}</span>
+          {piece.newTopic && <span className="tag">new topic</span>}
+          {piece.confidence < UNSURE_BELOW && <span className="tag warn">unsure</span>}
+          <button className="link" onClick={toggle} aria-expanded={open}>
+            {open ? "Hide" : "Show"}
+          </button>
         </span>
-        <span className="topic">{piece.topic}</span>
-        {piece.newTopic && <span className="tag">new topic</span>}
-        {piece.confidence < UNSURE_BELOW && <span className="tag warn">unsure</span>}
-        <button className="link" onClick={toggle} aria-expanded={open}>
-          {open ? "Hide" : "Show"}
-        </button>
       </div>
       {open && body !== null && <div className="note-body">{body}</div>}
     </li>

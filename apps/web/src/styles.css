@@ -1,6 +1,6 @@
 /* Explicit colors for both schemes: some hosts (such as Cursor's browser tab) paint the page white even in dark mode. */
 :root {
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, "Segoe UI", "Leelawadee UI", "Noto Sans Thai", "Noto Sans", sans-serif;
   color-scheme: light;
   --bg: #ffffff;
   --fg: #1a1a1a;
@@ -325,6 +325,12 @@ a {
 }
 
 .piece-line {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.piece-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;

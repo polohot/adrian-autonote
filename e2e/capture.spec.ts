@@ -62,6 +62,11 @@ test("capture, sort into topics, show, undo and retry", async ({ page }, testInf
   await expect(pieceLine(page, "Buy eggs too")).toContainText("Shopping");
   await expect(pieceLine(page, "Buy eggs too").getByText("new topic")).toHaveCount(0);
 
+  // Thai text is kept as typed.
+  await box.fill("ซื้อนมสองขวด");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(pieceLine(page, "ซื้อนมสองขวด")).toContainText("Shopping");
+
   // Low confidence is flagged.
   await box.fill("Call the dentist on Monday");
   await page.getByRole("button", { name: "Save" }).click();
@@ -86,7 +91,8 @@ test("capture, sort into topics, show, undo and retry", async ({ page }, testInf
   expect(existsSync(kyotoFile)).toBe(false);
   expect(existsSync(join(vault, "Travel"))).toBe(false);
   expect(existsSync(join(vault, "Shopping/Buy milk and bread.md"))).toBe(true);
-  expect(readdirSync(join(vault, "_archive"), { recursive: true }).filter((f) => String(f).endsWith(".md"))).toHaveLength(3);
+  expect(readdirSync(join(vault, "_archive"), { recursive: true }).filter((f) => String(f).endsWith(".md"))).toHaveLength(4);
+  expect(readFileSync(join(vault, "Shopping/ซื้อนมสองขวด.md"), "utf8")).toContain("ซื้อนมสองขวด");
 
   // A reply the app can't use is reported, with Retry.
   await box.fill("BROKEN note");
@@ -101,7 +107,7 @@ test("capture, sort into topics, show, undo and retry", async ({ page }, testInf
   await page.reload();
   await expect(captureItem(page, "Buy milk and bread").getByText("Filed")).toBeVisible();
   await expect(captureItem(page, "Kyoto temples to see in spring").getByText("Undone")).toBeVisible();
-  await expect(page.locator(".capture")).toHaveCount(4);
+  await expect(page.locator(".capture")).toHaveCount(5);
 });
 
 test("the Save button stays disabled for an empty capture", async ({ page }) => {
