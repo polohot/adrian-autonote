@@ -39,8 +39,13 @@ describe("createApp", () => {
     expect(await res.text()).toContain("AutoNote test page");
   });
 
-  it("returns 404 for unknown paths", async () => {
-    const res = await createApp({ db, webDir }).request("/api/nope");
+  it("returns 404 for unknown pages", async () => {
+    const res = await createApp({ db, webDir }).request("/nope.html");
     expect(res.status).toBe(404);
+  });
+
+  it("requires a session for unknown API paths, so it does not reveal which exist", async () => {
+    const res = await createApp({ db, webDir }).request("/api/nope");
+    expect(res.status).toBe(401);
   });
 });

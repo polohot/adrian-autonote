@@ -8,6 +8,9 @@ Answers to the open questions in [planning-handoff.md](planning-handoff.md).
 - **AI budget:** no fixed monthly budget yet. Track tokens and cost per note so a budget can be set from real numbers.
 - **First chat model:** gpt6-luna on an Azure AI Foundry deployment (reachable on the office network).
 - **Login:** a single passphrase per org, any length, no strength warnings. The passphrase identifies the org: anyone who enters the same passphrase joins the same org. The server stores only a slow hash (never the passphrase) and rate-limits attempts. Notes are not end-to-end encrypted, because the AI processes them on the server.
+  - A passphrase no org uses creates a new org immediately (no confirmation), followed by a "New org created" note.
+  - Matching ignores surrounding whitespace and Unicode encoding differences (NFC); case matters. Safety cap of 10,000 characters.
+  - Sessions last 90 days since last use; sign-out is per device. Details: [specs/02-passphrase-login.md](specs/02-passphrase-login.md).
 - **Tech stack:** TypeScript everywhere, as an npm workspaces monorepo.
   - Sorting engine in its own package so a future Obsidian plugin can reuse it.
   - Backend: Node 22 + Hono, one process.

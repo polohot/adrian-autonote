@@ -1,6 +1,9 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
 import type { DatabaseSync } from "node:sqlite";
-import { databaseVersions, openDatabase } from "./db.ts";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, describe, expect, it, onTestFinished } from "vitest";
+import { databaseVersions, openDatabase, SCHEMA_VERSION } from "./db.ts";
 
 const vector = (values: number[]) => new Uint8Array(new Float32Array(values).buffer);
 
@@ -25,6 +28,21 @@ describe("openDatabase", () => {
       .prepare("SELECT rowid FROM v WHERE embedding MATCH ? ORDER BY distance LIMIT 1")
       .get(vector([0.1, 0.9, 0])) as { rowid: number };
     expect(nearest.rowid).toBe(2);
+  });
+
+  it("runs migrations once and keeps data when reopened", () => {
+    const dir = mkdtempSync(join(tmpdir(), "autonote-db-"));
+    const path = join(dir, "test.db");
+    onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
+
+    const first = openDatabase(path);
+    expect(first.prepare("PRAGMA user_version").get()).toEqual({ user_version: SCHEMA_VERSION });
+    first.prepare("INSERT INTO meta (key, value) VALUES ('k', 'v')").run();
+    first.close();
+
+    db = openDatabase(path);
+    expect(db.prepare("PRAGMA user_version").get()).toEqual({ user_version: SCHEMA_VERSION });
+    expect(db.prepare("SELECT value FROM meta WHERE key = 'k'").get()).toEqual({ value: "v" });
   });
 
   it("supports full-text search", () => {

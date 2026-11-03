@@ -1,19 +1,28 @@
 import type { DatabaseSync } from "node:sqlite";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import pkg from "../../../package.json";
+import { requireSession, sameOriginOnly, sessionRoutes, socketAddress, type AppEnv } from "./auth/routes.ts";
 import { databaseVersions } from "./db.ts";
 
 export interface AppOptions {
   db: DatabaseSync;
   /** Folder with the built web app. Omit to serve the API only. */
   webDir?: string;
+  /** Key for login rate limiting. Defaults to the connection's IP address. */
+  clientIp?: (c: Context) => string;
+  now?: () => number;
 }
 
-export function createApp({ db, webDir }: AppOptions): Hono {
-  const app = new Hono();
+/** Routes added to the returned app under /api/ require a session. */
+export function createApp({ db, webDir, clientIp = socketAddress, now = Date.now }: AppOptions): Hono<AppEnv> {
+  const app = new Hono<AppEnv>();
+  const auth = { db, clientIp, now };
 
   app.get("/api/health", (c) => c.json({ status: "ok", version: pkg.version, ...databaseVersions(db) }));
+  app.use("/api/*", sameOriginOnly());
+  app.route("/api/session", sessionRoutes(auth));
+  app.use("/api/*", requireSession(auth));
 
   if (webDir) {
     app.use("*", serveStatic({ root: webDir }));
