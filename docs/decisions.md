@@ -16,4 +16,6 @@ Answers to the open questions in [planning-handoff.md](planning-handoff.md).
   - Word splitting for Thai/Chinese/Japanese: built-in `Intl.Segmenter`.
   - Tests: Vitest.
   - To check: whether Hugging Face model downloads (for local embeddings) are reachable on the office network.
+- **Hosting:** public GitHub repo, https://github.com/polohot/adrian-autonote (HTTPS, sign-in through Windows Git Credential Manager). Office-network details in the docs are published as-is, by choice.
+- **License:** AGPL-3.0-only, free for everyone. The app must show users a link to its source code (AGPL section 13), e.g. a "Source" link in the UI.
 - **Deferred:** final default embedding model (after the growth test); Node 26 upgrade (off the office network).
