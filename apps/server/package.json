@@ -1,0 +1,17 @@
+{
+  "name": "@autonote/server",
+  "version": "0.1.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "build": "vite build --ssr src/index.ts --outDir dist --emptyOutDir",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@autonote/engine": "0.1.0",
+    "@hono/node-server": "^2.1.6",
+    "hono": "^4.13.16",
+    "sqlite-vec": "^0.1.9"
+  }
+}

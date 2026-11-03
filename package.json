@@ -1,0 +1,27 @@
+{
+  "name": "autonote",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quick-capture notes that sort themselves into Obsidian-compatible Markdown.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "npm run build --workspace=@autonote/web --workspace=@autonote/server",
+    "start": "npm run build && node --disable-warning=ExperimentalWarning apps/server/dist/index.js",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run typecheck && NODE_OPTIONS=--disable-warning=ExperimentalWarning vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.1.0"
+  }
+}

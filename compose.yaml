@@ -1,0 +1,24 @@
+services:
+  autonote:
+    image: localhost/autonote:latest
+    build:
+      context: .
+      dockerfile: Containerfile
+      secrets:
+        - corp_ca
+    # Podman bridge networks fail on the WSL kernel (netavark nftables error); pasta works everywhere.
+    network_mode: pasta
+    ports:
+      # Localhost only until login exists.
+      - "127.0.0.1:${PORT:-3000}:3000"
+    volumes:
+      - autonote-data:/data
+      - ${CORP_CA_FILE:-/dev/null}:/certs/corp-ca.crt:ro
+    restart: unless-stopped
+
+secrets:
+  corp_ca:
+    file: ${CORP_CA_FILE:-/dev/null}
+
+volumes:
+  autonote-data:
