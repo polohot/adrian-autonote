@@ -16,6 +16,8 @@ Rules for coding agents working on AutoNote. Full project context: [docs/plannin
 - Every user-facing feature gets a Playwright test in `e2e/` that clicks through it like a user. Tests save screenshots to `e2e/screenshots/` (ignored by Git) through the `screenshot` helper, which also fails on unreadable text (contrast below 4.5:1, or no explicit page background).
 - Every build ends with a visual check: open the screenshots for light and dark mode, phone and desktop, look at them yourself, and show the relevant ones to the user. Passing tests alone don't count as checked.
 - Cursor's built-in browser is disabled by the company admin on this account; use Playwright for browser work.
+- Noto fonts for Thai and Chinese/Japanese/Korean are installed in WSL (`fonts-noto-core`, `fonts-noto-cjk`), so screenshots render those scripts. Include Thai text in browser tests of text-heavy screens.
+- Root commands without a password: `/mnt/c/Windows/System32/wsl.exe -d adrian-autonote -u root -- <command>` (works because Windows interop is enabled).
 
 ## Rules
 

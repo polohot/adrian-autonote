@@ -12,6 +12,11 @@ const STATUS_LABELS: Record<Capture["status"], string> = {
   undone: "Undone",
 };
 
+function statusLabel(capture: Capture): string {
+  if (capture.status === "filed" && capture.pieces.length === 0 && capture.pendingCount > 0) return "Needs your answer";
+  return STATUS_LABELS[capture.status];
+}
+
 function formatTime(at: number): string {
   const date = new Date(at);
   const time = date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
@@ -116,7 +121,7 @@ function CaptureItem({ capture, onChanged }: { capture: Capture; onChanged: () =
   return (
     <li className={`capture status-${capture.status}`}>
       <div className="capture-header">
-        <span className="status">{STATUS_LABELS[capture.status]}</span>
+        <span className="status">{statusLabel(capture)}</span>
         <span className="hint">{formatTime(capture.createdAt)}</span>
       </div>
       <p className="preview">{capture.preview}</p>

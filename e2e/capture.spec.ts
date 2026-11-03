@@ -73,6 +73,7 @@ test("capture, sort into topics, show, undo and retry", async ({ page }, testInf
   const dentist = captureItem(page, "Call the dentist on Monday");
   await expect(dentist.getByRole("link", { name: "1 waiting in Pending" })).toBeVisible();
   await expect(dentist.locator(".piece")).toHaveCount(0);
+  await expect(dentist.getByText("Needs your answer")).toBeVisible();
   await expect(menu(page).getByRole("link", { name: "Pending" })).toContainText("1");
 
   // Show the note text.
