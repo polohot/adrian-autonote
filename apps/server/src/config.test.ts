@@ -9,15 +9,23 @@ describe("readConfig", () => {
     expect(config.port).toBe(3000);
     expect(config.dataDir).toBe(resolve("data"));
     expect(config.webDir).toMatch(/apps\/web\/dist$/);
+    expect(config.loginLimit).toBe(10);
   });
 
   it("reads overrides from the environment", () => {
-    const config = readConfig({ PORT: "8080", HOST: "0.0.0.0", AUTONOTE_DATA_DIR: "/data", AUTONOTE_WEB_DIR: "/web" });
-    expect(config).toEqual({ port: 8080, host: "0.0.0.0", dataDir: "/data", webDir: "/web" });
+    const config = readConfig({
+      PORT: "8080",
+      HOST: "0.0.0.0",
+      AUTONOTE_DATA_DIR: "/data",
+      AUTONOTE_WEB_DIR: "/web",
+      AUTONOTE_LOGIN_LIMIT: "500",
+    });
+    expect(config).toEqual({ port: 8080, host: "0.0.0.0", dataDir: "/data", webDir: "/web", loginLimit: 500 });
   });
 
-  it("rejects an invalid port", () => {
+  it("rejects invalid numbers", () => {
     expect(() => readConfig({ PORT: "abc" })).toThrow(/PORT/);
     expect(() => readConfig({ PORT: "70000" })).toThrow(/PORT/);
+    expect(() => readConfig({ AUTONOTE_LOGIN_LIMIT: "0" })).toThrow(/AUTONOTE_LOGIN_LIMIT/);
   });
 });

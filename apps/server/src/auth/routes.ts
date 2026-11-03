@@ -16,6 +16,8 @@ export interface AuthOptions {
   db: DatabaseSync;
   clientIp: (c: Context) => string;
   now: () => number;
+  /** Login attempts allowed per client IP per 10 minutes. */
+  loginLimit: number;
 }
 
 export function socketAddress(c: Context): string {
@@ -81,8 +83,8 @@ export function requireSession(options: AuthOptions): MiddlewareHandler<AppEnv> 
 }
 
 export function sessionRoutes(options: AuthOptions): Hono<AppEnv> {
-  const { db, clientIp, now } = options;
-  const limiter = new RateLimiter(10, 10 * 60 * 1000);
+  const { db, clientIp, now, loginLimit } = options;
+  const limiter = new RateLimiter(loginLimit, 10 * 60 * 1000);
   const routes = new Hono<AppEnv>();
 
   routes.post("/", bodyLimit({ maxSize: 4 * MAX_PASSPHRASE_LENGTH + 1024 }), async (c) => {

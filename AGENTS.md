@@ -5,13 +5,15 @@ Rules for coding agents working on AutoNote. Full project context: [docs/plannin
 ## Commands
 
 - Run the app: `npm start` (builds, then serves http://127.0.0.1:3000)
-- Run the tests: `npm test` (type-checks every package, then runs Vitest)
+- Run the tests: `npm test` (type check, Vitest unit tests, then Playwright browser tests on a phone and a desktop screen)
+- Only unit tests: `npm run test:unit`. Only browser tests: `npm run test:e2e`.
 - Run in a container: `podman-compose up --build -d`
 
 ## Workflow
 
 - Work in this order: spec, plan, build, test, ship. Specs and plans live in `docs/specs/`; shipping means commit and push.
 - Record new decisions in `docs/decisions.md`.
+- Every user-facing feature gets a Playwright test in `e2e/` that clicks through it like a user. Tests save screenshots to `e2e/screenshots/` (ignored by Git); look at them and show them to the user when reporting a feature.
 
 ## Rules
 

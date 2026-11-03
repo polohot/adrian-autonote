@@ -24,7 +24,7 @@ Then open http://127.0.0.1:3000. The app listens on localhost only. Data is stor
 npm test
 ```
 
-Type-checks every package, then runs all tests.
+Type-checks every package, runs the unit tests, then builds the app and clicks through it in a headless browser (Playwright, on a phone-sized and a desktop screen). The first run downloads the browser.
 
 ## Run in a container
 

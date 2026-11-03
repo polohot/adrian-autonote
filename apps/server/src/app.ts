@@ -12,12 +12,20 @@ export interface AppOptions {
   /** Key for login rate limiting. Defaults to the connection's IP address. */
   clientIp?: (c: Context) => string;
   now?: () => number;
+  /** Login attempts allowed per client IP per 10 minutes. */
+  loginLimit?: number;
 }
 
 /** Routes added to the returned app under /api/ require a session. */
-export function createApp({ db, webDir, clientIp = socketAddress, now = Date.now }: AppOptions): Hono<AppEnv> {
+export function createApp({
+  db,
+  webDir,
+  clientIp = socketAddress,
+  now = Date.now,
+  loginLimit = 10,
+}: AppOptions): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
-  const auth = { db, clientIp, now };
+  const auth = { db, clientIp, now, loginLimit };
 
   app.get("/api/health", (c) => c.json({ status: "ok", version: pkg.version, ...databaseVersions(db) }));
   app.use("/api/*", sameOriginOnly());
