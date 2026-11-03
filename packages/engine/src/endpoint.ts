@@ -12,6 +12,8 @@ const API_PATHS: Record<ApiKind, string> = {
 
 const AZURE_HOST = /\.(openai\.azure\.com|services\.ai\.azure\.com|cognitiveservices\.azure\.com)$/i;
 
+export const isAzureHost = (hostname: string) => AZURE_HOST.test(hostname);
+
 /**
  * Turns what the user typed into the Settings URL field into the exact API URL.
  * Accepts a full endpoint (".../responses", ".../chat/completions") or a base URL

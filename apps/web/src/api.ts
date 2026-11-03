@@ -13,9 +13,9 @@ export interface Health {
 export class ApiError extends Error {
   constructor(
     readonly status: number,
-    readonly body: { error?: string; retryAfterSeconds?: number },
+    readonly body: { error?: string; message?: string; retryAfterSeconds?: number },
   ) {
-    super(body.error ?? `HTTP ${status}`);
+    super(body.message ?? body.error ?? `HTTP ${status}`);
   }
 }
 
@@ -41,3 +41,35 @@ export const signIn = (passphrase: string) =>
   request<{ org: Org; created: boolean }>("/api/session", { method: "POST", body: JSON.stringify({ passphrase }) });
 
 export const signOut = () => request<void>("/api/session", { method: "DELETE" });
+
+export type ApiStyle = "auto" | "responses" | "chat-completions";
+
+export interface AiProfile {
+  id: string;
+  name: string;
+  url: string;
+  api: ApiStyle;
+  model: string;
+  keyHint: string;
+  active: boolean;
+}
+
+export interface ProfileInput {
+  name: string;
+  url: string;
+  api: ApiStyle;
+  model: string;
+  /** Empty when editing means "keep the current key". */
+  apiKey: string;
+}
+
+export type TestResult = { ok: true; reply: string; latencyMs: number } | { ok: false; error: string };
+
+export const listProfiles = () => request<{ profiles: AiProfile[] }>("/api/ai-profiles").then((r) => r.profiles);
+export const createProfile = (input: ProfileInput) =>
+  request<AiProfile>("/api/ai-profiles", { method: "POST", body: JSON.stringify(input) });
+export const updateProfile = (id: string, input: ProfileInput) =>
+  request<AiProfile>(`/api/ai-profiles/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+export const deleteProfile = (id: string) => request<void>(`/api/ai-profiles/${id}`, { method: "DELETE" });
+export const activateProfile = (id: string) => request<void>(`/api/ai-profiles/${id}/activate`, { method: "POST" });
+export const testProfile = (id: string) => request<TestResult>(`/api/ai-profiles/${id}/test`, { method: "POST" });

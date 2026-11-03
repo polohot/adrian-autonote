@@ -1,13 +1,48 @@
 import { useEffect, useState } from "react";
 import { getHealth, getSession, signOut, type Health, type Org } from "./api.ts";
 import { LoginScreen } from "./LoginScreen.tsx";
+import { SettingsPage } from "./SettingsPage.tsx";
 
 type SessionState = { kind: "loading" } | { kind: "signed-out" } | { kind: "signed-in"; org: Org; created: boolean };
+
+type Page = "home" | "settings";
+
+const pageFromHash = (): Page => (window.location.hash === "#/settings" ? "settings" : "home");
+
+function useHashPage(): Page {
+  const [page, setPage] = useState(pageFromHash);
+  useEffect(() => {
+    const onChange = () => setPage(pageFromHash());
+    window.addEventListener("hashchange", onChange);
+    return () => window.removeEventListener("hashchange", onChange);
+  }, []);
+  return page;
+}
+
+function HomePage({ created, health }: { created: boolean; health: Health | null }) {
+  return (
+    <>
+      {created && <p className="note">New org created.</p>}
+      <p>Signed in.</p>
+      {health && (
+        <dl>
+          <dt>Version</dt>
+          <dd>{health.version}</dd>
+          <dt>SQLite</dt>
+          <dd>{health.sqlite}</dd>
+          <dt>sqlite-vec</dt>
+          <dd>{health.sqliteVec}</dd>
+        </dl>
+      )}
+    </>
+  );
+}
 
 export function App() {
   const [session, setSession] = useState<SessionState>({ kind: "loading" });
   const [health, setHealth] = useState<Health | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const page = useHashPage();
 
   useEffect(() => {
     getSession()
@@ -20,36 +55,36 @@ export function App() {
 
   async function handleSignOut() {
     await signOut();
+    window.location.hash = "";
     setSession({ kind: "signed-out" });
   }
 
   return (
     <main>
-      <h1>AutoNote</h1>
+      <header>
+        <h1>AutoNote</h1>
+        {session.kind === "signed-in" && (
+          <nav aria-label="Main">
+            <a href="#/" aria-current={page === "home" ? "page" : undefined}>
+              Home
+            </a>
+            <a href="#/settings" aria-current={page === "settings" ? "page" : undefined}>
+              Settings
+            </a>
+            <button className="secondary" onClick={handleSignOut}>
+              Sign out
+            </button>
+          </nav>
+        )}
+      </header>
       {error && <p className="error">{error}</p>}
 
       {session.kind === "signed-out" && (
         <LoginScreen onSignedIn={(org, created) => setSession({ kind: "signed-in", org, created })} />
       )}
 
-      {session.kind === "signed-in" && (
-        <>
-          {session.created && <p className="note">New org created.</p>}
-          <p>
-            Signed in. <button onClick={handleSignOut}>Sign out</button>
-          </p>
-          {health && (
-            <dl>
-              <dt>Version</dt>
-              <dd>{health.version}</dd>
-              <dt>SQLite</dt>
-              <dd>{health.sqlite}</dd>
-              <dt>sqlite-vec</dt>
-              <dd>{health.sqliteVec}</dd>
-            </dl>
-          )}
-        </>
-      )}
+      {session.kind === "signed-in" &&
+        (page === "settings" ? <SettingsPage /> : <HomePage created={session.created} health={health} />)}
     </main>
   );
 }

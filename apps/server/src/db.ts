@@ -19,6 +19,23 @@ const MIGRATIONS: string[] = [
      expires_at INTEGER NOT NULL
    ) STRICT;
    CREATE INDEX sessions_org_id ON sessions(org_id);`,
+
+  `CREATE TABLE ai_profiles (
+     id TEXT PRIMARY KEY,
+     org_id TEXT NOT NULL REFERENCES orgs(id) ON DELETE CASCADE,
+     name TEXT NOT NULL,
+     url TEXT NOT NULL,
+     api TEXT NOT NULL CHECK (api IN ('auto', 'responses', 'chat-completions')),
+     model TEXT NOT NULL,
+     api_key TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL
+   ) STRICT;
+   CREATE INDEX ai_profiles_org_id ON ai_profiles(org_id);
+   CREATE TABLE org_settings (
+     org_id TEXT PRIMARY KEY REFERENCES orgs(id) ON DELETE CASCADE,
+     active_ai_profile_id TEXT REFERENCES ai_profiles(id) ON DELETE SET NULL
+   ) STRICT;`,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;
