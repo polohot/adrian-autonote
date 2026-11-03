@@ -15,7 +15,11 @@ Answers to the open questions in [planning-handoff.md](planning-handoff.md).
   - Frontend: React + Vite + PWA plugin.
   - Word splitting for Thai/Chinese/Japanese: built-in `Intl.Segmenter`.
   - Tests: Vitest.
+  - Verified on the office network: `sqlite-vec` 0.1.9 installs from npm and loads into `node:sqlite` (SQLite 3.46.1 on Node 22.22.1); vector search and FTS5 work. Integer IDs must be bound as BigInt (`1n`), because `node:sqlite` binds JS numbers as floats. Node prints an ExperimentalWarning for `node:sqlite`.
   - To check: whether Hugging Face model downloads (for local embeddings) are reachable on the office network.
 - **Hosting:** public GitHub repo, https://github.com/polohot/adrian-autonote (HTTPS, sign-in through Windows Git Credential Manager). Office-network details in the docs are published as-is, by choice.
 - **License:** AGPL-3.0-only, free for everyone. The app must show users a link to its source code (AGPL section 13), e.g. a "Source" link in the UI.
+- **Milestone 1:** project skeleton (one run command, one test command, Containerfile), passphrase login, quick-capture box (phone and PC), sorting engine filing text notes into Markdown topics with gpt6-luna, activity feed with undo, and a Settings screen for AI connection profiles.
+- **AI connection settings:** entered in the Settings UI, not in files. URL, API key and model can be changed anytime; multiple profiles with switching. Settings belong to the org, so everyone in the org shares the connection. The key is stored server-side and never sent back to the browser in full (only the last few characters are shown).
+- **AI API format:** support the OpenAI Responses API (`/openai/v1/responses`) as well as Chat Completions. Azure Foundry resources can be on `*.services.ai.azure.com` as well as `*.openai.azure.com`. The Settings URL field accepts either a full endpoint URL or a base URL ending in `/openai/v1/`. The first Foundry endpoint was verified reachable from the office network (returns 401 without a key).
 - **Deferred:** final default embedding model (after the growth test); Node 26 upgrade (off the office network).
