@@ -13,7 +13,9 @@ Rules for coding agents working on AutoNote. Full project context: [docs/plannin
 
 - Work in this order: spec, plan, build, test, ship. Specs and plans live in `docs/specs/`; shipping means commit and push.
 - Record new decisions in `docs/decisions.md`.
-- Every user-facing feature gets a Playwright test in `e2e/` that clicks through it like a user. Tests save screenshots to `e2e/screenshots/` (ignored by Git); look at them and show them to the user when reporting a feature.
+- Every user-facing feature gets a Playwright test in `e2e/` that clicks through it like a user. Tests save screenshots to `e2e/screenshots/` (ignored by Git) through the `screenshot` helper, which also fails on unreadable text (contrast below 4.5:1, or no explicit page background).
+- Every build ends with a visual check: open the screenshots for light and dark mode, phone and desktop, look at them yourself, and show the relevant ones to the user. Passing tests alone don't count as checked.
+- Cursor's built-in browser is disabled by the company admin on this account; use Playwright for browser work.
 
 ## Rules
 

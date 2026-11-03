@@ -1,9 +1,50 @@
+/* Explicit colors for both schemes: some hosts (such as Cursor's browser tab) paint the page white even in dark mode. */
 :root {
   font-family: system-ui, sans-serif;
-  color-scheme: light dark;
-  --muted: color-mix(in srgb, currentColor 60%, transparent);
-  --border: color-mix(in srgb, currentColor 20%, transparent);
+  color-scheme: light;
+  --bg: #ffffff;
+  --fg: #1a1a1a;
+  --muted: #5f6368;
+  --border: #d0d4d9;
   --accent: #1565c0;
+  --error: #c62828;
+  --success-bg: #e3f1e4;
+  --button-bg: #eef0f2;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #16181c;
+    --fg: #e8eaed;
+    --muted: #a8adb4;
+    --border: #3c4048;
+    --accent: #6ea8fe;
+    --error: #ff8a80;
+    --success-bg: #1e3a24;
+    --button-bg: #2a2e35;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+input,
+select,
+button {
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+}
+
+button {
+  background: var(--button-bg);
 }
 
 main {
@@ -63,7 +104,7 @@ dd {
 }
 
 .error {
-  color: #c62828;
+  color: var(--error);
 }
 
 .hint {
@@ -76,7 +117,7 @@ dd {
 .note {
   padding: 0.5rem 0.75rem;
   border-radius: 0.375rem;
-  background: color-mix(in srgb, #2e7d32 15%, transparent);
+  background: var(--success-bg);
   overflow-wrap: anywhere;
 }
 
@@ -144,7 +185,8 @@ select {
   padding: 0.125rem 0.5rem;
   border-radius: 999px;
   background: var(--accent);
-  color: white;
+  color: var(--bg);
+  font-weight: 600;
 }
 
 .actions {
@@ -166,9 +208,10 @@ button.secondary {
 }
 
 button.danger {
-  color: #c62828;
+  color: var(--error);
 }
 
 button:disabled {
   cursor: default;
+  opacity: 0.55;
 }

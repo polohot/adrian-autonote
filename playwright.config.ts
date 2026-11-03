@@ -16,6 +16,8 @@ export default defineConfig({
   projects: [
     { name: "phone", use: { ...devices["Pixel 7"] } },
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
+    { name: "phone-dark", use: { ...devices["Pixel 7"], colorScheme: "dark" } },
+    { name: "desktop-dark", use: { ...devices["Desktop Chrome"], colorScheme: "dark" } },
   ],
   webServer: [
     {
