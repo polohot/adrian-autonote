@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
-import { generateText, noteFileName, renderNote, sortCapture, usageOf } from "@autonote/engine";
+import { generateText, needsReview, noteFileName, renderNote, resolveTopic, sortCapture, usageOf } from "@autonote/engine";
 import { getActiveConnection } from "../ai/profiles.ts";
 import type { Vault } from "../vault.ts";
+import { deletePendingForCapture, insertPending } from "./pending.ts";
 import {
   captureIdsWithStatus,
   deleteCaptureNotes,
@@ -20,6 +21,14 @@ export interface SorterOptions {
   vault: Vault;
   fetch: typeof fetch;
   now: () => number;
+}
+
+export interface PieceToFile {
+  title: string;
+  body: string;
+  /** Raw or cleaned topic path; matched to an existing topic regardless of case. */
+  topic: string;
+  confidence: number;
 }
 
 /** Sorts captures one at a time in the background, in the order they were queued. */
@@ -66,10 +75,34 @@ export class Sorter {
     while (this.running) await this.running;
   }
 
-  /** Removes the capture's notes and the empty topic folders it created; the original stays archived. */
+  /** Removes the capture's notes, its Pending pieces and the empty topic folders it created; the original stays archived. */
   async undo(capture: Capture): Promise<void> {
     await this.removeNotes(capture);
+    deletePendingForCapture(this.options.db, capture.id);
     setStatus(this.options.db, capture.id, "undone", this.options.now());
+  }
+
+  /** Writes one piece as a note in its topic folder and returns the note ID. */
+  async filePiece(capture: Capture, piece: PieceToFile): Promise<string> {
+    const { db, vault, now } = this.options;
+    const path = resolveTopic(piece.topic, topicPaths(db, capture.orgId));
+    const topic = findOrCreateTopic(db, capture.orgId, path, capture.id, now());
+    const noteId = randomUUID();
+    const markdown = renderNote({
+      id: noteId,
+      title: piece.title,
+      topic: topic.path,
+      created: new Date(now()).toISOString(),
+      sourcePath: capture.archivePath.replace(/\.md$/, ""),
+      body: piece.body,
+    });
+    const filePath = await vault.writeNew(capture.orgId, topic.path, (n) => noteFileName(piece.title, n), markdown);
+    insertNote(
+      db,
+      { id: noteId, orgId: capture.orgId, captureId: capture.id, topicId: topic.id, title: piece.title, filePath, confidence: piece.confidence },
+      now(),
+    );
+    return noteId;
   }
 
   private async drain(): Promise<void> {
@@ -84,7 +117,7 @@ export class Sorter {
   }
 
   private async sortOne(id: string): Promise<void> {
-    const { db, vault, fetch, now } = this.options;
+    const { db, fetch, now } = this.options;
     const capture = getCapture(db, id);
     if (!capture || capture.status !== "queued") return;
 
@@ -109,28 +142,14 @@ export class Sorter {
     }
 
     try {
-      const sourcePath = capture.archivePath.replace(/\.md$/, "");
       for (const piece of result.pieces) {
-        const topic = findOrCreateTopic(db, capture.orgId, piece.topic, capture.id, now());
-        const noteId = randomUUID();
-        const markdown = renderNote({
-          id: noteId,
-          title: piece.title,
-          topic: topic.path,
-          created: new Date(now()).toISOString(),
-          sourcePath,
-          body: piece.body,
-        });
-        const filePath = await vault.writeNew(capture.orgId, topic.path, (n) => noteFileName(piece.title, n), markdown);
-        insertNote(
-          db,
-          { id: noteId, orgId: capture.orgId, captureId: capture.id, topicId: topic.id, title: piece.title, filePath, confidence: piece.confidence },
-          now(),
-        );
+        if (needsReview(piece)) insertPending(db, capture.orgId, capture.id, piece, now());
+        else await this.filePiece(capture, piece);
       }
       setStatus(db, id, "filed", now(), { usage: result.usage });
     } catch (err) {
       await this.removeNotes(capture);
+      deletePendingForCapture(db, capture.id);
       setStatus(db, id, "failed", now(), {
         error: `Could not save the notes: ${err instanceof Error ? err.message : String(err)}`,
         usage: result.usage,

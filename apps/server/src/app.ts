@@ -4,6 +4,7 @@ import { Hono, type Context } from "hono";
 import pkg from "../../../package.json";
 import { aiProfileRoutes } from "./ai/routes.ts";
 import { requireSession, sameOriginOnly, sessionRoutes, socketAddress, type AppEnv } from "./auth/routes.ts";
+import { pendingRoutes } from "./captures/pending-routes.ts";
 import { captureRoutes, noteRoutes } from "./captures/routes.ts";
 import { Sorter } from "./captures/sorter.ts";
 import { databaseVersions } from "./db.ts";
@@ -48,6 +49,7 @@ export function createApp({
   app.route("/api/ai-profiles", aiProfileRoutes({ db, now, fetch, onConnectionChanged: (orgId) => sorter.resumeWaiting(orgId) }));
   app.route("/api/captures", captureRoutes({ db, vault, sorter, now }));
   app.route("/api/notes", noteRoutes({ db, vault }));
+  app.route("/api/pending", pendingRoutes({ db, sorter, fetch }));
 
   if (webDir) {
     app.use("*", serveStatic({ root: webDir }));

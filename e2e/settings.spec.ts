@@ -113,11 +113,33 @@ test("add, test, edit, switch and delete AI connections", async ({ page, browser
   await other.close();
 });
 
-test("the menu shows which page you are on", async ({ page }) => {
+test("the menu has Chat, Add Notes, Pending and Settings, and shows which page you are on", async ({ page }, testInfo) => {
   await signIn(page, uniquePassphrase("menu"));
-  await expect(menu(page).getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+  const links = menu(page).getByRole("link");
+  await expect(links).toHaveText(["Chat", "Add Notes", "Pending", "Settings"]);
+  await expect(menu(page).getByRole("link", { name: "Add Notes" })).toHaveAttribute("aria-current", "page");
+  await screenshot(page, testInfo, "menu-add-notes");
+
+  await menu(page).getByRole("link", { name: "Chat" }).click();
+  await expect(page.getByRole("heading", { name: "Chat" })).toBeVisible();
+  await expect(menu(page).getByRole("link", { name: "Chat" })).toHaveAttribute("aria-current", "page");
+  await screenshot(page, testInfo, "menu-chat");
+
   await menu(page).getByRole("link", { name: "Settings" }).click();
   await expect(menu(page).getByRole("link", { name: "Settings" })).toHaveAttribute("aria-current", "page");
-  await menu(page).getByRole("link", { name: "Home" }).click();
+  await menu(page).getByRole("link", { name: "Add Notes" }).click();
   await expect(page.getByLabel("Capture")).toBeVisible();
+});
+
+test("the menu is a left column on wide screens and a bottom bar on phones", async ({ page }) => {
+  await signIn(page, uniquePassphrase("menu layout"));
+  const box = (await menu(page).boundingBox())!;
+  const viewport = page.viewportSize()!;
+  if (viewport.width < 720) {
+    expect(box.y + box.height).toBeCloseTo(viewport.height, 0);
+    expect(box.width).toBeCloseTo(viewport.width, 0);
+  } else {
+    expect(box.x).toBe(0);
+    expect(box.height).toBeCloseTo(viewport.height, 0);
+  }
 });

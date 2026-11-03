@@ -19,7 +19,7 @@ async function addFakeConnection(page: Page): Promise<void> {
   await form.getByLabel("API key").fill("good-key-capture-1234");
   await form.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("listitem", { name: "Fake" }).getByText("Active")).toBeVisible();
-  await menu(page).getByRole("link", { name: "Home" }).click();
+  await menu(page).getByRole("link", { name: "Add Notes" }).click();
 }
 
 test("capture, sort into topics, show, undo and retry", async ({ page }, testInfo) => {
@@ -67,10 +67,13 @@ test("capture, sort into topics, show, undo and retry", async ({ page }, testInf
   await page.getByRole("button", { name: "Save" }).click();
   await expect(pieceLine(page, "ซื้อนมสองขวด")).toContainText("Shopping");
 
-  // Low confidence is flagged.
+  // A piece the AI has a question about waits in Pending instead of being filed.
   await box.fill("Call the dentist on Monday");
   await page.getByRole("button", { name: "Save" }).click();
-  await expect(pieceLine(page, "Call the dentist on Monday").getByText("unsure")).toBeVisible();
+  const dentist = captureItem(page, "Call the dentist on Monday");
+  await expect(dentist.getByRole("link", { name: "1 waiting in Pending" })).toBeVisible();
+  await expect(dentist.locator(".piece")).toHaveCount(0);
+  await expect(menu(page).getByRole("link", { name: "Pending" })).toContainText("1");
 
   // Show the note text.
   await pieceLine(page, "Kyoto temples to see in spring").getByRole("button", { name: "Show" }).click();

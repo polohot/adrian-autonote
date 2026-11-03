@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { screenshot, signIn, uniquePassphrase } from "./helpers.ts";
+import { menu, screenshot, signIn, uniquePassphrase } from "./helpers.ts";
 
 test("a new passphrase creates an org, and the same passphrase opens it again", async ({ page, context }, testInfo) => {
   const passphrase = uniquePassphrase("blue whale ภูเขา");
@@ -27,6 +27,7 @@ test("a new passphrase creates an org, and the same passphrase opens it again", 
   await expect(page.getByLabel("Capture")).toBeVisible();
   await expect(page.getByText("New org created.")).toBeHidden();
 
+  await menu(page).getByRole("link", { name: "Settings" }).click();
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(continueButton).toBeVisible();
   await page.reload();

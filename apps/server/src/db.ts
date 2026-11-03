@@ -72,6 +72,21 @@ const MIGRATIONS: string[] = [
      UNIQUE (org_id, file_path)
    ) STRICT;
    CREATE INDEX notes_capture ON notes(capture_id);`,
+
+  `CREATE TABLE pending_pieces (
+     id TEXT PRIMARY KEY,
+     org_id TEXT NOT NULL REFERENCES orgs(id) ON DELETE CASCADE,
+     capture_id TEXT NOT NULL REFERENCES captures(id) ON DELETE CASCADE,
+     title TEXT NOT NULL,
+     body TEXT NOT NULL,
+     suggested_topic TEXT NOT NULL,
+     confidence REAL NOT NULL,
+     question TEXT,
+     choices TEXT NOT NULL,
+     created_at INTEGER NOT NULL
+   ) STRICT;
+   CREATE INDEX pending_pieces_org ON pending_pieces(org_id, created_at);
+   CREATE INDEX pending_pieces_capture ON pending_pieces(capture_id);`,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

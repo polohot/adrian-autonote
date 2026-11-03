@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 import { getNote, listCaptures, retryCapture, saveCapture, undoCapture, type Capture, type Piece } from "./api.ts";
 
-const UNSURE_BELOW = 0.6;
 const POLL_MS = 1500;
 
 const STATUS_LABELS: Record<Capture["status"], string> = {
@@ -91,7 +90,6 @@ function PieceRow({ piece }: { piece: Piece }) {
           </span>
           <span className="topic">{piece.topic}</span>
           {piece.newTopic && <span className="tag">new topic</span>}
-          {piece.confidence < UNSURE_BELOW && <span className="tag warn">unsure</span>}
           <button className="link" onClick={toggle} aria-expanded={open}>
             {open ? "Hide" : "Show"}
           </button>
@@ -130,6 +128,11 @@ function CaptureItem({ capture, onChanged }: { capture: Capture; onChanged: () =
           ))}
         </ul>
       )}
+      {capture.pendingCount > 0 && (
+        <p className="pending-link">
+          <a href="#/pending">{capture.pendingCount} waiting in Pending</a>
+        </p>
+      )}
       <div className="actions">
         {capture.status === "filed" && (
           <button className="secondary" onClick={act(undoCapture)} disabled={busy}>
@@ -151,9 +154,11 @@ interface HomeProps {
   /** Show the one-time "New org created." note. */
   created: boolean;
   onCreatedSeen: () => void;
+  /** Called whenever the feed was reloaded, so the Pending count can follow. */
+  onActivity: () => void;
 }
 
-export function HomePage({ created, onCreatedSeen }: HomeProps) {
+export function HomePage({ created, onCreatedSeen, onActivity }: HomeProps) {
   const [feed, setFeed] = useState<{ hasConnection: boolean; captures: Capture[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -162,9 +167,10 @@ export function HomePage({ created, onCreatedSeen }: HomeProps) {
       .then((result) => {
         setFeed(result);
         setError(null);
+        onActivity();
       })
       .catch(() => setError("Could not load your activity."));
-  }, []);
+  }, [onActivity]);
 
   useEffect(reload, [reload]);
 
@@ -177,6 +183,7 @@ export function HomePage({ created, onCreatedSeen }: HomeProps) {
 
   return (
     <>
+      <h1>Add Notes</h1>
       {created && <p className="note">New org created.</p>}
       {feed && !feed.hasConnection && (
         <p className="banner" role="status">

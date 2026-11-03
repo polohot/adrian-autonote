@@ -74,7 +74,7 @@ function ProfileCard({ profile, onChanged, onEdit }: { profile: AiProfile; onCha
   );
 }
 
-export function SettingsPage({ health }: { health: Health | null }) {
+export function SettingsPage({ health, onSignOut }: { health: Health | null; onSignOut: () => void }) {
   const [profiles, setProfiles] = useState<AiProfile[] | null>(null);
   const [editing, setEditing] = useState<string | "new" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -92,8 +92,8 @@ export function SettingsPage({ health }: { health: Health | null }) {
 
   return (
     <section>
-      <h2>Settings</h2>
-      <h3>AI connections</h3>
+      <h1>Settings</h1>
+      <h2>AI connections</h2>
       {profiles.length === 0 && editing !== "new" && <p>No connections yet. Add one so AutoNote can sort your notes.</p>}
       <ul className="profiles">
         {profiles.map((profile) =>
@@ -127,9 +127,17 @@ export function SettingsPage({ health }: { health: Health | null }) {
         <button onClick={() => setEditing("new")}>Add connection</button>
       )}
 
+      <h2>Account</h2>
+      <p>
+        <button className="secondary" onClick={onSignOut}>
+          Sign out
+        </button>{" "}
+        <span className="hint">Signs out this device only.</span>
+      </p>
+
       {health && (
         <>
-          <h3>About</h3>
+          <h2>About</h2>
           <dl>
             <dt>Version</dt>
             <dd>{health.version}</dd>

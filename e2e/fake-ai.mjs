@@ -10,12 +10,28 @@ function send(res, status, body) {
 }
 
 function topicFor(text) {
-  if (/kyoto|tokyo|japan|เกียวโต/i.test(text)) return { topic: "Travel/Japan", confidence: 0.92 };
-  if (/milk|eggs|bread|นม/i.test(text)) return { topic: "Shopping", confidence: 0.88 };
-  return { topic: "Inbox", confidence: 0.4 };
+  if (/kyoto|tokyo|japan|เกียวโต/i.test(text)) return { topic: "Travel/Japan", confidence: 0.92, question: null, choices: [] };
+  if (/milk|eggs|bread|นม/i.test(text)) return { topic: "Shopping", confidence: 0.88, question: null, choices: [] };
+  if (/dentist|doctor|หมอ/i.test(text)) {
+    return {
+      topic: "Personal/Health",
+      confidence: 0.8,
+      question: "Is this appointment for you or for your family?",
+      choices: ["Personal/Health", "Family/Health"],
+    };
+  }
+  return { topic: "Inbox", confidence: 0.4, question: null, choices: [] };
+}
+
+function answerTopic(input) {
+  const answer = input.split("USER'S ANSWER:\n<<<\n")[1]?.split("\n>>>")[0] ?? "";
+  if (/son|daughter|kid|ลูก/i.test(answer)) return "Family/Kids";
+  if (/work|office/i.test(answer)) return "Work";
+  return "Personal/Health";
 }
 
 function replyText(instructions, input) {
+  if (instructions.includes("using the user's answer")) return JSON.stringify({ topic: answerTopic(input) });
   if (!instructions.includes("You sort captures")) return "OK";
   const capture = input.split("<<<\n")[1]?.split("\n>>>")[0] ?? "";
   if (capture.includes("BROKEN")) return "Sorry, I cannot help with that.";

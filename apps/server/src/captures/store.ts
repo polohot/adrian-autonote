@@ -36,6 +36,8 @@ export interface CaptureView {
   inputTokens: number;
   outputTokens: number;
   pieces: Piece[];
+  /** Pieces waiting for the user in Pending. */
+  pendingCount: number;
 }
 
 interface CaptureRow {
@@ -202,6 +204,13 @@ function toViews(db: DatabaseSync, captures: CaptureRow[]): CaptureView[] {
     confidence: number;
     new_topic: number;
   }[];
+  const pendingCounts = new Map(
+    (
+      db
+        .prepare(`SELECT capture_id, count(*) AS n FROM pending_pieces WHERE capture_id IN (${placeholders}) GROUP BY capture_id`)
+        .all(...captures.map((c) => c.id)) as { capture_id: string; n: number }[]
+    ).map((row) => [row.capture_id, row.n]),
+  );
 
   return captures.map((row) => ({
     id: row.id,
@@ -220,5 +229,28 @@ function toViews(db: DatabaseSync, captures: CaptureRow[]): CaptureView[] {
         newTopic: piece.new_topic === 1,
         confidence: piece.confidence,
       })),
+    pendingCount: pendingCounts.get(row.id) ?? 0,
   }));
+}
+
+/** Piece view for one note, as the activity feed shows it. */
+export function getPieceView(db: DatabaseSync, noteId: string): Piece | null {
+  const row = db
+    .prepare(
+      `SELECT n.id AS note_id, n.title, t.path AS topic, n.confidence, (t.created_by_capture_id IS n.capture_id) AS new_topic
+       FROM notes n JOIN topics t ON t.id = n.topic_id WHERE n.id = ?`,
+    )
+    .get(noteId) as { note_id: string; title: string; topic: string; confidence: number; new_topic: number } | undefined;
+  return row
+    ? { noteId: row.note_id, title: row.title, topic: row.topic, newTopic: row.new_topic === 1, confidence: row.confidence }
+    : null;
+}
+
+/** Adds tokens spent after sorting (for example, resolving a Pending answer). */
+export function addUsage(db: DatabaseSync, captureId: string, usage: { inputTokens: number; outputTokens: number }): void {
+  db.prepare("UPDATE captures SET input_tokens = input_tokens + ?, output_tokens = output_tokens + ? WHERE id = ?").run(
+    usage.inputTokens,
+    usage.outputTokens,
+    captureId,
+  );
 }

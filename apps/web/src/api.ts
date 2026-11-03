@@ -93,6 +93,20 @@ export interface Capture {
   inputTokens: number;
   outputTokens: number;
   pieces: Piece[];
+  pendingCount: number;
+}
+
+export interface PendingItem {
+  id: string;
+  captureId: string;
+  capturePreview: string;
+  title: string;
+  body: string;
+  suggestedTopic: string;
+  confidence: number;
+  question: string | null;
+  choices: string[];
+  createdAt: number;
 }
 
 export interface Note {
@@ -108,3 +122,10 @@ export const saveCapture = (text: string) =>
 export const undoCapture = (id: string) => request<Capture>(`/api/captures/${id}/undo`, { method: "POST" });
 export const retryCapture = (id: string) => request<Capture>(`/api/captures/${id}/retry`, { method: "POST" });
 export const getNote = (id: string) => request<Note>(`/api/notes/${id}`);
+
+export const listPending = () => request<{ items: PendingItem[] }>("/api/pending").then((r) => r.items);
+export const choosePending = (id: string, topic: string) =>
+  request<Piece>(`/api/pending/${id}/choose`, { method: "POST", body: JSON.stringify({ topic }) });
+export const answerPending = (id: string, answer: string) =>
+  request<Piece>(`/api/pending/${id}/answer`, { method: "POST", body: JSON.stringify({ answer }) });
+export const dropPending = (id: string) => request<void>(`/api/pending/${id}`, { method: "DELETE" });

@@ -120,7 +120,7 @@ describe("capture and sorting routes", () => {
         status: 200,
         text: pieces(
           { title: "Kyoto temples", body: "Kinkaku-ji in spring.", topic: "Travel/Japan" },
-          { title: "Groceries", body: "Milk and eggs", topic: "Shopping", confidence: 0.4 },
+          { title: "Groceries", body: "Milk and eggs", topic: "Shopping", confidence: 0.85 },
         ),
       };
     };
@@ -128,7 +128,7 @@ describe("capture and sorting routes", () => {
     const [view] = (await feed(headers)).captures;
     expect(view!.pieces.map((p) => [p.title, p.topic, p.newTopic, p.confidence])).toEqual([
       ["Kyoto temples", "Travel/Japan", true, 0.9],
-      ["Groceries", "Shopping", true, 0.4],
+      ["Groceries", "Shopping", true, 0.85],
     ]);
 
     const markdown = readFileSync(vaultFile(orgId, "Travel/Japan/Kyoto temples.md"), "utf8");

@@ -12,5 +12,14 @@ export {
   resolveTopic,
 } from "./markdown.ts";
 export type { NoteFile } from "./markdown.ts";
-export { MAX_TOPICS_IN_PROMPT, parseSortReply, sortCapture, SortReplyError, usageOf } from "./sort.ts";
-export type { SortedPiece, SortOptions, SortResult, Usage } from "./sort.ts";
+export {
+  fileWithAnswer,
+  MAX_TOPICS_IN_PROMPT,
+  needsReview,
+  parseSortReply,
+  sortCapture,
+  SortReplyError,
+  UNSURE_BELOW,
+  usageOf,
+} from "./sort.ts";
+export type { Generate, PendingPieceInput, SortedPiece, SortOptions, SortResult, Usage } from "./sort.ts";
