@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { screenshot, signIn, uniquePassphrase } from "./helpers.ts";
+import { menu, screenshot, signIn, uniquePassphrase } from "./helpers.ts";
 
 const FAKE_AI = "http://127.0.0.1:3199";
 
@@ -19,7 +19,7 @@ test("add, test, edit, switch and delete AI connections", async ({ page, browser
   const passphrase = uniquePassphrase("settings");
   await signIn(page, passphrase);
 
-  await page.getByRole("link", { name: "Settings" }).click();
+  await menu(page).getByRole("link", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "AI connections" })).toBeVisible();
   await expect(page.getByText("No connections yet.")).toBeVisible();
   await screenshot(page, testInfo, "settings-empty");
@@ -108,16 +108,16 @@ test("add, test, edit, switch and delete AI connections", async ({ page, browser
   // Another org sees none of it.
   const other = await browser.newPage();
   await signIn(other, uniquePassphrase("other org"));
-  await other.getByRole("link", { name: "Settings" }).click();
+  await menu(other).getByRole("link", { name: "Settings" }).click();
   await expect(other.getByText("No connections yet.")).toBeVisible();
   await other.close();
 });
 
 test("the menu shows which page you are on", async ({ page }) => {
   await signIn(page, uniquePassphrase("menu"));
-  await expect(page.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
-  await page.getByRole("link", { name: "Settings" }).click();
-  await expect(page.getByRole("link", { name: "Settings" })).toHaveAttribute("aria-current", "page");
-  await page.getByRole("link", { name: "Home" }).click();
-  await expect(page.getByText("Signed in.")).toBeVisible();
+  await expect(menu(page).getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+  await menu(page).getByRole("link", { name: "Settings" }).click();
+  await expect(menu(page).getByRole("link", { name: "Settings" })).toHaveAttribute("aria-current", "page");
+  await menu(page).getByRole("link", { name: "Home" }).click();
+  await expect(page.getByLabel("Capture")).toBeVisible();
 });

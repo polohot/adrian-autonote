@@ -15,7 +15,7 @@ test("a new passphrase creates an org, and the same passphrase opens it again", 
 
   await field.fill(`  ${passphrase}  `);
   await continueButton.click();
-  await expect(page.getByText("Signed in.")).toBeVisible();
+  await expect(page.getByLabel("Capture")).toBeVisible();
   await expect(page.getByText("New org created.")).toBeVisible();
   await screenshot(page, testInfo, "login-new-org");
 
@@ -24,7 +24,7 @@ test("a new passphrase creates an org, and the same passphrase opens it again", 
   const firstOrgId = await page.evaluate(() => fetch("/api/session").then((r) => r.json()).then((b) => b.org.id));
 
   await page.reload();
-  await expect(page.getByText("Signed in.")).toBeVisible();
+  await expect(page.getByLabel("Capture")).toBeVisible();
   await expect(page.getByText("New org created.")).toBeHidden();
 
   await page.getByRole("button", { name: "Sign out" }).click();

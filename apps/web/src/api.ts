@@ -73,3 +73,38 @@ export const updateProfile = (id: string, input: ProfileInput) =>
 export const deleteProfile = (id: string) => request<void>(`/api/ai-profiles/${id}`, { method: "DELETE" });
 export const activateProfile = (id: string) => request<void>(`/api/ai-profiles/${id}/activate`, { method: "POST" });
 export const testProfile = (id: string) => request<TestResult>(`/api/ai-profiles/${id}/test`, { method: "POST" });
+
+export type CaptureStatus = "queued" | "sorting" | "filed" | "failed" | "waiting" | "undone";
+
+export interface Piece {
+  noteId: string;
+  title: string;
+  topic: string;
+  newTopic: boolean;
+  confidence: number;
+}
+
+export interface Capture {
+  id: string;
+  preview: string;
+  status: CaptureStatus;
+  error: string | null;
+  createdAt: number;
+  inputTokens: number;
+  outputTokens: number;
+  pieces: Piece[];
+}
+
+export interface Note {
+  id: string;
+  title: string;
+  topic: string;
+  markdown: string;
+}
+
+export const listCaptures = () => request<{ hasConnection: boolean; captures: Capture[] }>("/api/captures");
+export const saveCapture = (text: string) =>
+  request<Capture>("/api/captures", { method: "POST", body: JSON.stringify({ text, language: navigator.language }) });
+export const undoCapture = (id: string) => request<Capture>(`/api/captures/${id}/undo`, { method: "POST" });
+export const retryCapture = (id: string) => request<Capture>(`/api/captures/${id}/retry`, { method: "POST" });
+export const getNote = (id: string) => request<Note>(`/api/notes/${id}`);

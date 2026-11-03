@@ -4,11 +4,14 @@ import { expect, type Page, type TestInfo } from "@playwright/test";
 /** A passphrase no other test uses, so every test starts with its own empty org. */
 export const uniquePassphrase = (label: string) => `${label} ${randomUUID()}`;
 
+/** The main menu (Home / Settings / Sign out); other links with the same names exist on some pages. */
+export const menu = (page: Page) => page.getByRole("navigation", { name: "Main" });
+
 export async function signIn(page: Page, passphrase: string): Promise<void> {
   await page.goto("/");
   await page.getByLabel("Passphrase", { exact: true }).fill(passphrase);
   await page.getByRole("button", { name: "Continue" }).click();
-  await expect(page.getByRole("link", { name: "Settings" })).toBeVisible();
+  await expect(menu(page).getByRole("link", { name: "Settings" })).toBeVisible();
 }
 
 interface ContrastProblem {

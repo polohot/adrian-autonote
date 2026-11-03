@@ -7,6 +7,7 @@ import {
   testProfile,
   updateProfile,
   type AiProfile,
+  type Health,
   type TestResult,
 } from "./api.ts";
 import { ProfileForm } from "./ProfileForm.tsx";
@@ -73,7 +74,7 @@ function ProfileCard({ profile, onChanged, onEdit }: { profile: AiProfile; onCha
   );
 }
 
-export function SettingsPage() {
+export function SettingsPage({ health }: { health: Health | null }) {
   const [profiles, setProfiles] = useState<AiProfile[] | null>(null);
   const [editing, setEditing] = useState<string | "new" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -124,6 +125,20 @@ export function SettingsPage() {
         />
       ) : (
         <button onClick={() => setEditing("new")}>Add connection</button>
+      )}
+
+      {health && (
+        <>
+          <h3>About</h3>
+          <dl>
+            <dt>Version</dt>
+            <dd>{health.version}</dd>
+            <dt>SQLite</dt>
+            <dd>{health.sqlite}</dd>
+            <dt>sqlite-vec</dt>
+            <dd>{health.sqliteVec}</dd>
+          </dl>
+        </>
       )}
     </section>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getHealth, getSession, signOut, type Health, type Org } from "./api.ts";
+import { HomePage } from "./HomePage.tsx";
 import { LoginScreen } from "./LoginScreen.tsx";
 import { SettingsPage } from "./SettingsPage.tsx";
 
@@ -19,30 +20,16 @@ function useHashPage(): Page {
   return page;
 }
 
-function HomePage({ created, health }: { created: boolean; health: Health | null }) {
-  return (
-    <>
-      {created && <p className="note">New org created.</p>}
-      <p>Signed in.</p>
-      {health && (
-        <dl>
-          <dt>Version</dt>
-          <dd>{health.version}</dd>
-          <dt>SQLite</dt>
-          <dd>{health.sqlite}</dd>
-          <dt>sqlite-vec</dt>
-          <dd>{health.sqliteVec}</dd>
-        </dl>
-      )}
-    </>
-  );
-}
-
 export function App() {
   const [session, setSession] = useState<SessionState>({ kind: "loading" });
   const [health, setHealth] = useState<Health | null>(null);
   const [error, setError] = useState<string | null>(null);
   const page = useHashPage();
+
+  const dismissCreated = () => setSession((s) => (s.kind === "signed-in" && s.created ? { ...s, created: false } : s));
+  useEffect(() => {
+    if (page !== "home") dismissCreated();
+  }, [page]);
 
   useEffect(() => {
     getSession()
@@ -84,7 +71,7 @@ export function App() {
       )}
 
       {session.kind === "signed-in" &&
-        (page === "settings" ? <SettingsPage /> : <HomePage created={session.created} health={health} />)}
+        (page === "settings" ? <SettingsPage health={health} /> : <HomePage created={session.created} onCreatedSeen={dismissCreated} />)}
     </main>
   );
 }

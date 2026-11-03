@@ -3,6 +3,7 @@ import type { Hono } from "hono";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "../app.ts";
 import { openDatabase } from "../db.ts";
+import { tempDir } from "../testing.ts";
 import { SESSION_COOKIE, type AppEnv } from "./routes.ts";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -13,14 +14,20 @@ describe("passphrase login routes", () => {
   let ip: string;
   let time: number;
 
+  let vault: ReturnType<typeof tempDir>;
+
   beforeEach(() => {
     db = openDatabase(":memory:");
+    vault = tempDir("vault");
     ip = "100.64.0.1";
     time = Date.UTC(2026, 10, 3);
-    app = createApp({ db, clientIp: () => ip, now: () => time });
+    app = createApp({ db, vaultDir: vault.path, clientIp: () => ip, now: () => time });
     app.get("/api/whoami", (c) => c.json({ orgId: c.get("orgId") }));
   });
-  afterEach(() => db.close());
+  afterEach(() => {
+    db.close();
+    vault.remove();
+  });
 
   const signIn = (passphrase: unknown, headers: Record<string, string> = {}, url = "/api/session") =>
     app.request(url, {

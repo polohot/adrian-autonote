@@ -36,6 +36,42 @@ const MIGRATIONS: string[] = [
      org_id TEXT PRIMARY KEY REFERENCES orgs(id) ON DELETE CASCADE,
      active_ai_profile_id TEXT REFERENCES ai_profiles(id) ON DELETE SET NULL
    ) STRICT;`,
+
+  `CREATE TABLE captures (
+     id TEXT PRIMARY KEY,
+     org_id TEXT NOT NULL REFERENCES orgs(id) ON DELETE CASCADE,
+     text TEXT NOT NULL,
+     language TEXT,
+     status TEXT NOT NULL CHECK (status IN ('queued', 'sorting', 'filed', 'failed', 'waiting', 'undone')),
+     error TEXT,
+     archive_path TEXT NOT NULL,
+     input_tokens INTEGER NOT NULL DEFAULT 0,
+     output_tokens INTEGER NOT NULL DEFAULT 0,
+     created_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL
+   ) STRICT;
+   CREATE INDEX captures_org_created ON captures(org_id, created_at);
+   CREATE TABLE topics (
+     id TEXT PRIMARY KEY,
+     org_id TEXT NOT NULL REFERENCES orgs(id) ON DELETE CASCADE,
+     path TEXT NOT NULL COLLATE NOCASE,
+     created_by_capture_id TEXT REFERENCES captures(id) ON DELETE SET NULL,
+     created_at INTEGER NOT NULL,
+     last_used_at INTEGER NOT NULL,
+     UNIQUE (org_id, path)
+   ) STRICT;
+   CREATE TABLE notes (
+     id TEXT PRIMARY KEY,
+     org_id TEXT NOT NULL REFERENCES orgs(id) ON DELETE CASCADE,
+     capture_id TEXT REFERENCES captures(id) ON DELETE SET NULL,
+     topic_id TEXT NOT NULL REFERENCES topics(id),
+     title TEXT NOT NULL,
+     file_path TEXT NOT NULL,
+     confidence REAL NOT NULL,
+     created_at INTEGER NOT NULL,
+     UNIQUE (org_id, file_path)
+   ) STRICT;
+   CREATE INDEX notes_capture ON notes(capture_id);`,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

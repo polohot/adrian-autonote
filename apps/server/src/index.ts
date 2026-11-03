@@ -8,7 +8,8 @@ import { openDatabase } from "./db.ts";
 const config = readConfig(process.env);
 mkdirSync(config.dataDir, { recursive: true });
 const db = openDatabase(join(config.dataDir, "autonote.db"));
-const app = createApp({ db, webDir: config.webDir, loginLimit: config.loginLimit });
+const app = createApp({ db, vaultDir: join(config.dataDir, "vaults"), webDir: config.webDir, loginLimit: config.loginLimit });
+app.sorter.resumeUnfinished();
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => {
   console.log(`AutoNote is running at http://${config.host}:${info.port}`);

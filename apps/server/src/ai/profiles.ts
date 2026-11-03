@@ -106,7 +106,7 @@ const SELECT_PROFILES = `
   WHERE p.org_id = ?`;
 
 export function listProfiles(db: DatabaseSync, orgId: string): AiProfile[] {
-  const rows = db.prepare(`${SELECT_PROFILES} ORDER BY p.created_at, p.id`).all(orgId) as unknown as ProfileRow[];
+  const rows = db.prepare(`${SELECT_PROFILES} ORDER BY p.created_at, p.rowid`).all(orgId) as unknown as ProfileRow[];
   return rows.map(toProfile);
 }
 

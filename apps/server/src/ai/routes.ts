@@ -18,11 +18,13 @@ export interface AiRouteOptions {
   db: DatabaseSync;
   now: () => number;
   fetch: typeof fetch;
+  /** Called after a profile is added, edited or made active. */
+  onConnectionChanged?: (orgId: string) => void;
 }
 
 const TEST_PROMPT = "Reply with the single word OK.";
 
-export function aiProfileRoutes({ db, now, fetch }: AiRouteOptions): Hono<AppEnv> {
+export function aiProfileRoutes({ db, now, fetch, onConnectionChanged = () => {} }: AiRouteOptions): Hono<AppEnv> {
   const routes = new Hono<AppEnv>();
   const notFound = { error: "not_found" } as const;
 
@@ -41,22 +43,28 @@ export function aiProfileRoutes({ db, now, fetch }: AiRouteOptions): Hono<AppEnv
 
   routes.post("/", async (c) => {
     const input = (await readInput(c, false)) as ProfileInput;
-    return c.json(createProfile(db, c.get("orgId"), input, now()), 201);
+    const profile = createProfile(db, c.get("orgId"), input, now());
+    onConnectionChanged(c.get("orgId"));
+    return c.json(profile, 201);
   });
 
   routes.patch("/:id", async (c) => {
     const patch = await readInput(c, true);
     const profile = updateProfile(db, c.get("orgId"), c.req.param("id"), patch, now());
-    return profile ? c.json(profile) : c.json(notFound, 404);
+    if (!profile) return c.json(notFound, 404);
+    onConnectionChanged(c.get("orgId"));
+    return c.json(profile);
   });
 
   routes.delete("/:id", (c) =>
     deleteProfile(db, c.get("orgId"), c.req.param("id")) ? c.body(null, 204) : c.json(notFound, 404),
   );
 
-  routes.post("/:id/activate", (c) =>
-    activateProfile(db, c.get("orgId"), c.req.param("id")) ? c.body(null, 204) : c.json(notFound, 404),
-  );
+  routes.post("/:id/activate", (c) => {
+    if (!activateProfile(db, c.get("orgId"), c.req.param("id"))) return c.json(notFound, 404);
+    onConnectionChanged(c.get("orgId"));
+    return c.body(null, 204);
+  });
 
   routes.post("/:id/test", async (c) => {
     const connection = getConnection(db, c.get("orgId"), c.req.param("id"));

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "../app.ts";
 import type { AppEnv } from "../auth/routes.ts";
 import { openDatabase } from "../db.ts";
+import { tempDir } from "../testing.ts";
 import { getActiveConnection, keyHint } from "./profiles.ts";
 
 const AZURE = {
@@ -18,6 +19,7 @@ describe("AI profile routes", () => {
   let app: Hono<AppEnv>;
   let providerCalls: { url: string; headers: Record<string, string> }[];
   let providerReply: { status: number; body: unknown };
+  let vault: ReturnType<typeof tempDir>;
 
   beforeEach(() => {
     db = openDatabase(":memory:");
@@ -27,9 +29,13 @@ describe("AI profile routes", () => {
       providerCalls.push({ url, headers: init.headers as Record<string, string> });
       return new Response(JSON.stringify(providerReply.body), { status: providerReply.status });
     }) as typeof fetch;
-    app = createApp({ db, fetch: fakeFetch, loginLimit: 1000 });
+    vault = tempDir("vault");
+    app = createApp({ db, vaultDir: vault.path, fetch: fakeFetch, loginLimit: 1000 });
   });
-  afterEach(() => db.close());
+  afterEach(() => {
+    db.close();
+    vault.remove();
+  });
 
   async function signIn(passphrase: string): Promise<Record<string, string>> {
     const res = await app.request("/api/session", {
